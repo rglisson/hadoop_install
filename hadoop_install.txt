@@ -1,0 +1,81 @@
+#install java
+sudo apt-get install openjdk-8-jre
+which java
+java -version
+
+#Configure passwordless SSH
+pwd
+ssh-keygen
+cd .ssh
+cat id_rsa.pub >> authorized_keys
+cat authorized_keys
+ssh localhost
+#if connection is refused:
+sudo apt-get install openssh-server
+sudo service ssh status
+'q' to quit
+ssh localhost
+exit
+
+#Download and Deploy Hadoop
+cd ~
+search "apache hadoop download" - binary file (2.9.2), click mirror link to download
+cut/past to home directory
+
+tar -xzf hadoop-2.9.2.tar.gz
+rm hadoop-2.9.2.tar.gz
+mv hadoop-2.9.2/ hadoop
+cd hadoop/
+
+#configure hadoop
+which java
+ll /usr/bin/java
+ll /etc/alternatives/java
+ll /usr/lib/jvm/java-8-openjdk-amd64/jre
+sudo apt install vim
+vim etc/hadoop/hadoop-env.sh
+	#i to insert
+	#esc & .wq to exit/save
+
+#Configure HDFS
+vim etc/hadoop/core-site.xml
+<configuration>
+	<property>
+		<name>fs.defaultFS</name>
+		<value>hdfs://localhost:9000</value>
+	</property>
+</configuration>
+vim etc/hadoop/hdfs-site.xml
+<configuration>
+	<property>
+		<name>dfs.replication</name>
+		<value>1</value>
+	</property>
+</configuration>
+
+./bin/hdfs namenode -format
+
+#Start Services
+./sbin/start-dfs.sh
+./bin/hdfs dfs -ls /
+
+#Configure MapReduce
+./bin/hdfs dfs -mkdir -p /user/ryan
+./bin/hdfs dfs -ls /
+./bin/hdfs dfs -put LICENSE.txt LICENSE.txt
+./bin/hdfs dfs -ls /user/ryan
+
+#Run a MapReduce Job
+ll share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.2.jar
+./bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.2.jar
+./bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.2.jar wordmean
+./bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.2.jar wordmean LICENSE.txt license_wordmean_output
+
+./bin/hdfs dfs -ls /user/ryan
+./bin/hdfs dfs -cat license_wordmean_output/*
+
+./bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.2.jar pi 10 100
+
+#Stop Services
+./bin/hdfs dfs -ls 
+./sbin/stop-dfs.sh
